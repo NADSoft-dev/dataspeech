@@ -40,7 +40,7 @@ def pitch_apply(batch, rank=None, audio_column_name="audio", output_column_name=
                 batch_size=batch_size,
                 center=center,
                 interp_unvoiced_at=interp_unvoiced_at,
-                gpu=(rank or 0)% torch.cuda.device_count() if rank else rank
+                gpu=True
                 )
             
             utterance_pitch_mean.append(pitch.mean())
@@ -59,7 +59,7 @@ def pitch_apply(batch, rank=None, audio_column_name="audio", output_column_name=
                 batch_size=batch_size,
                 center=center,
                 interp_unvoiced_at=interp_unvoiced_at,
-                gpu=(rank or 0)% torch.cuda.device_count() if rank else rank
+                gpu=True
                 )        
         batch[f"{output_column_name}_mean"] = pitch.mean()
         batch[f"{output_column_name}_std"] = pitch.std()
