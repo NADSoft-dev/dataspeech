@@ -12,8 +12,10 @@ def rate_apply(batch, rank=None, audio_column_name="audio", text_column_name="te
             sample_rate = audio["sampling_rate"]
             audio_length = len(audio["array"].squeeze()) / sample_rate
             
-            speaking_rate = len(phonemes) / audio_length
-
+            if audio_length > 0:
+                speaking_rate = len(phonemes) / audio_length
+            else:
+                speaking_rate = 0
             
             speaking_rates.append(speaking_rate)
             phonemes_list.append(phonemes)
@@ -25,9 +27,11 @@ def rate_apply(batch, rank=None, audio_column_name="audio", text_column_name="te
             
         sample_rate = batch[audio_column_name]["sampling_rate"]
         audio_length = len(batch[audio_column_name]["array"].squeeze()) / sample_rate
-        
-        speaking_rate = len(phonemes) / audio_length
-        
+        if audio_length > 0:
+            speaking_rate = len(phonemes) / audio_length
+        else:
+            speaking_rate = 0
+                        
         batch["speaking_rate"] = speaking_rate
         batch["phonemes"] = phonemes
 
