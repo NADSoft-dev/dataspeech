@@ -29,39 +29,47 @@ def pitch_apply(batch, rank=None, audio_column_name="audio", output_column_name=
         utterance_pitch_mean = []
         utterance_pitch_std = []
         for sample in batch[audio_column_name]:
-            # Infer pitch and periodicity
-            pitch, periodicity = penn.from_audio(
-                torch.tensor(sample["array"][None, :]).float(),
-                sample["sampling_rate"],
-                hopsize=hopsize,
-                fmin=fmin,
-                fmax=fmax,
-                checkpoint=checkpoint,
-                batch_size=batch_size,
-                center=center,
-                interp_unvoiced_at=interp_unvoiced_at,
-                gpu=0
-                )
-            
-            utterance_pitch_mean.append(pitch.mean())
-            utterance_pitch_std.append(pitch.std())
-            
+            try:
+                # Infer pitch and periodicity
+                pitch, periodicity = penn.from_audio(
+                    torch.tensor(sample["array"][None, :]).float(),
+                    sample["sampling_rate"],
+                    hopsize=hopsize,
+                    fmin=fmin,
+                    fmax=fmax,
+                    checkpoint=checkpoint,
+                    batch_size=batch_size,
+                    center=center,
+                    interp_unvoiced_at=interp_unvoiced_at,
+                    gpu=0
+                    )
+                
+                utterance_pitch_mean.append(pitch.mean())
+                utterance_pitch_std.append(pitch.std())
+            except Exception as err:
+                utterance_pitch_mean.append(0)
+                utterance_pitch_std.append(0)
+
         batch[f"{output_column_name}_mean"] = utterance_pitch_mean 
         batch[f"{output_column_name}_std"] = utterance_pitch_std 
     else:
-        pitch, periodicity = penn.from_audio(
-                torch.tensor(sample["array"][None, :]).float(),
-                sample["sampling_rate"],
-                hopsize=hopsize,
-                fmin=fmin,
-                fmax=fmax,
-                checkpoint=checkpoint,
-                batch_size=batch_size,
-                center=center,
-                interp_unvoiced_at=interp_unvoiced_at,
-                gpu=0
-                )        
-        batch[f"{output_column_name}_mean"] = pitch.mean()
-        batch[f"{output_column_name}_std"] = pitch.std()
-
+        try:
+            pitch, periodicity = penn.from_audio(
+                    torch.tensor(sample["array"][None, :]).float(),
+                    sample["sampling_rate"],
+                    hopsize=hopsize,
+                    fmin=fmin,
+                    fmax=fmax,
+                    checkpoint=checkpoint,
+                    batch_size=batch_size,
+                    center=center,
+                    interp_unvoiced_at=interp_unvoiced_at,
+                    gpu=0
+                    )        
+            batch[f"{output_column_name}_mean"] = pitch.mean()
+            batch[f"{output_column_name}_std"] = pitch.std()
+        except Exception as err:
+            batch[f"{output_column_name}_mean"] = 0
+            batch[f"{output_column_name}_std"] = 0
+        
     return batch
