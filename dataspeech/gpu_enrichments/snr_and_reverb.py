@@ -29,22 +29,34 @@ def snr_apply(batch, rank=None, audio_column_name="audio"):
         snr = []
         c50 = []
         for sample in batch[audio_column_name]:
-            if not "array" in sample:
-                continue
+            try:
+                res = pipeline({"sample_rate": sample["sampling_rate"],
+                                "waveform": torch.tensor(sample["array"][None, :]).to(device).float()})
+                
+                snr.append(res["snr"].mean())
+                c50.append(res["c50"].mean())
+            except Exception as err:
+                print(err)
+                print(sample)
+                snr.append(0)
+                c50.append(0)
 
-            res = pipeline({"sample_rate": sample["sampling_rate"],
-                            "waveform": torch.tensor(sample["array"][None, :]).to(device).float()})
-            
-            snr.append(res["snr"].mean())
-            c50.append(res["c50"].mean())
         
         batch["snr"] = snr
         batch["c50"] = c50
     else:
-        res = pipeline({"sample_rate": batch[audio_column_name]["sampling_rate"],
-                        "waveform": torch.tensor(batch[audio_column_name]["array"][None, :]).to(device).float()})
+        try:
+            res = pipeline({"sample_rate": batch[audio_column_name]["sampling_rate"],
+                            "waveform": torch.tensor(batch[audio_column_name]["array"][None, :]).to(device).float()})
+            
+            batch["snr"] = res["snr"].mean()
+            batch["c50"] = res["c50"].mean()
+
+        except Exception as err:
+            print(err)
+            print(batch[audio_column_name])            
+            batch["snr"] = 0
+            batch["c50"] = 0           
         
-        batch["snr"] = res["snr"].mean()
-        batch["c50"] = res["c50"].mean()
 
     return batch
