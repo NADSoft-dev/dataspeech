@@ -29,9 +29,9 @@ def snr_apply(batch, rank=None, audio_column_name="audio"):
         snr = []
         c50 = []
         for sample in batch[audio_column_name]:
-            if not sample["array"]:
+            if not "array" in sample:
                 continue
-            
+
             res = pipeline({"sample_rate": sample["sampling_rate"],
                             "waveform": torch.tensor(sample["array"][None, :]).to(device).float()})
             
